@@ -20,4 +20,4 @@ spec:
     spec:
       containers:
       - name: web
-        image: nginx:bad-tag
+        image: nginx:1.27
