@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: api-alerts
+  namespace: demo
+  labels:
+    release: kube-prometheus-stack # Bắt buộc khớp với label release của Prometheus
+spec:
+  groups:
+  - name: api.rules
+    rules:
+    - alert: APIHighErrorRate
+      expr: |
+        sum(rate(flask_http_request_total{status=~"5..", namespace="demo"}[1m]))
+        /
+        (sum(rate(flask_http_request_total{namespace="demo"}[1m])) + 0.0001) > 0.1
+      for: 30s
+      labels:
+        severity: critical
+      annotations:
+        summary: "Tỷ lệ lỗi API tăng cao đột biến"
+        description: "Ứng dụng API tại namespace demo đang có tỷ lệ lỗi là {{ $value | humanizePercentage }} (vượt ngưỡng cho phép 10%)."

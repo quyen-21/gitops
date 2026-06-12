@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: api-success-rate
+  namespace: demo
+spec:
+  metrics:
+  - name: success-rate
+    interval: 10s # Cứ mỗi 10 giây sẽ quét Prometheus một lần
+    successCondition: result[0] < 0.05 # Tỷ lệ lỗi dưới 5% là Đạt (Success)
+    failureLimit: 1 # Chỉ cần 1 lần kiểm tra thất bại là hủy (Abort) ngay lập tức
+    provider:
+      prometheus:
+        address: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+        query: |
+          sum(rate(flask_http_request_total{status=~"5..", namespace="demo"}[1m]))
+          /
+          (sum(rate(flask_http_request_total{namespace="demo"}[1m])) + 0.0001)
